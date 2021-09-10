@@ -1,0 +1,21 @@
+swagger: "2.0"
+
+info:
+  title: BalanceManager
+  description: |
+    Сервис, управляющий балансом.
+  version: 1.0.0
+
+paths:
+  /balance:
+    post:
+      consumes:
+        - application/json
+      operationId: manageBalance
+      summary: Если amount на вход отрицательный - списать деньги со счета, иначе - пополнить счет.
+      parameters:
+        - name: params
+          in: body
+          schema:
+            type: object
+            properties:
