@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func init() {
+func init() { //TODO: implement in docker-compose envs
 	_ = os.Setenv("DB_HOST", "0.0.0.0")
 	_ = os.Setenv("DB_PORT", "5432")
 	_ = os.Setenv("DB_NAME", "balancemanager")
@@ -15,7 +15,6 @@ func init() {
 	_ = os.Setenv("LISTEN_PORT", "8001")
 	_ = os.Setenv("SERVER_READ_TIMEOUT_SECONDS", "5")
 	_ = os.Setenv("SERVER_WRITE_TIMEOUT_SECONDS", "5")
-
 }
 
 type Config struct {

@@ -6,16 +6,250 @@ info:
     Сервис, управляющий балансом.
   version: 1.0.0
 
+host: 0.0.0.0:8001
 paths:
+  /createuser:
+    get:
+      produces:
+        - application/json
+      operationId: createUser
+      summary: Создать нового пользователя.
+      responses:
+        '200':
+          description: Пользователь успешно создан.
+          schema:
+            $ref: '#/definitions/UserInfoResponse'
+        '400':
+          description: Ошибка при обработке запроса, будут выведены подробности.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Ошибка при парсинге ответа.
   /balance:
+    get:
+      produces:
+        - application/json
+      operationId: getBalance
+      summary: Получить баланс пользователя по его ID.
+      parameters:
+        - name: user_id
+          in: query
+          type: integer
+      responses:
+        '200':
+          description: Получены данные юзера.
+          schema:
+            $ref: '#/definitions/UserInfoResponse'
+        '400':
+          description: Не указан user_id или указан в неверном формате. Если ошибка при обработке запроса, будут выведены подробности.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Ошибка при парсинге ответа.
+  /withdrawal:
     post:
       consumes:
         - application/json
-      operationId: manageBalance
-      summary: Если amount на вход отрицательный - списать деньги со счета, иначе - пополнить счет.
+      produces:
+        - application/json
+      operationId: withdrawFunds
+      summary: Списать средства по ID пользователя.
       parameters:
-        - name: params
+        - name: UpdateBalanceRequest
           in: body
           schema:
-            type: object
-            properties:
+            $ref: '#/definitions/UpdateBalanceRequest'
+      responses:
+        '200':
+          description: Деньги успешно списаны.
+          schema:
+            $ref: '#/definitions/UserInfoResponse'
+        '400':
+          description: Введены неверные данные. Если ошибка при обработке запроса, будут выведены подробности.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Ошибка при парсинге ответа.
+  /deposit:
+    post:
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      operationId: makeDeposit
+      summary: Пополнить счет по ID пользователя.
+      parameters:
+        - name: UpdateBalanceRequest
+          in: body
+          schema:
+            $ref: '#/definitions/UpdateBalanceRequest'
+      responses:
+        '200':
+          description: Счет успешно пополнен.
+          schema:
+            $ref: '#/definitions/UserInfoResponse'
+        '400':
+          description: Введены неверные данные. Если ошибка при обработке запроса, будут выведены подробности.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Ошибка при парсинге ответа.
+  /sendfunds:
+    post:
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      operationId: sendFunds
+      summary: Перевести средства от пользователя к пользователю по их ID.
+      parameters:
+        - name: SendFundsRequest
+          in: body
+          schema:
+            $ref: '#/definitions/SendFundsRequest'
+      responses:
+        '200':
+          description: Деньги успешно переведены.
+          schema:
+            $ref: '#/definitions/SendFundsResponse'
+        '400':
+          description: Введены неверные данные. Если ошибка при обработке запроса, будут выведены подробности.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Ошибка при парсинге ответа.
+  /transactions:
+    get:
+      produces:
+        - application/json
+      summary: Получить список транзакций пользователя по ID.
+      operationId: getTransactions
+      parameters:
+        - name: user_id
+          in: query
+          type: integer
+        - name: limit
+          in: query
+          type: integer
+          description: Лимит для пагинации.
+        - name: cursor
+          in: query
+          type: integer
+          description: Next cursor для пагинации. При первом запросе следует оставить поле пустым. В ответе от сервера будет получен следующий курсор.
+      responses:
+        '200':
+          description: Получен список транзакций.
+          schema:
+            $ref: '#/definitions/GetTransactionsResponse'
+        '400':
+          description: Введены неверные данные. Если ошибка при обработке запроса, будут выведены подробности.
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Ошибка при парсинге ответа.
+definitions:
+  UserInfoResponse:
+    type: object
+    properties:
+      user_id:
+        type: integer
+        format: int64
+        x-go-name: UserID
+      balance:
+        type: string
+        x-go-name: Balance
+  Error:
+    properties:
+      error:
+        type: string
+  UpdateBalanceRequest:
+    type: object
+    properties:
+      user_id:
+        type: integer
+        format: int64
+        x-go-name: UserID
+      amount:
+        type: string
+        description: Поле должно иметь вид "Рубли.Копейки".
+        example: 350.23
+        x-go-name: Amount
+      description:
+        type: string
+        x-go-name: Description
+  SendFundsRequest:
+    type: object
+    properties:
+      sender_id:
+        type: integer
+        format: int64
+        x-go-name: SenderID
+      recipient_id:
+        type: integer
+        format: int64
+        x-go-name: RecipientID
+      amount:
+        type: string
+        description: Поле должно иметь вид "Рубли.Копейки".
+        example: 350.23
+        x-go-name: Amount
+      description:
+        type: string
+        x-go-name: Description
+  SendFundsResponse:
+    type: object
+    properties:
+      sender_id:
+        type: integer
+        format: int64
+        x-go-name: SenderID
+      sender_balance:
+        type: string
+        x-go-name: SenderBalance
+      recipient_id:
+        type: integer
+        format: int64
+        x-go-name: RecipientID
+      amount:
+        type: string
+        x-go-name: Amount
+  GetTransactionsResponse:
+    type: object
+    properties:
+      transactions:
+        type: array
+        items:
+          $ref: '#/definitions/Transaction'
+        x-go-name: Transactions
+      next_cursor:
+        type: integer
+        format: int64
+        x-go-name: NextCursor
+  Transaction:
+    type: object
+    properties:
+      transaction_id:
+        type: integer
+        format: int64
+        x-go-name: TransactionID
+      initiator_id:
+        type: integer
+        format: int64
+        x-go-name: InitiatorID
+      recipient_id:
+        type: integer
+        format: int64
+        x-go-name: RecipientID
+      amount:
+        type: string
+        x-go-name: Amount
+      description:
+        type: string
+        x-go-name: Description
+      date:
+        type: string
+        format: date
+        x-go-name: Date
+      operation_type:
+        type: string
+        x-go-name: OperationType
